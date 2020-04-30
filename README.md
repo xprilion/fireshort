@@ -102,6 +102,20 @@ The following configurations are available:
 |:---------:|:----:|:-----------:|
 | globa.config.mainsite | URL | The site to which a blank suffix redirects. For ex: **short.site** -> **long.site** |
 
+### Suggested Rules for Firebase Database
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read : if true;
+			allow write : if request.auth.uid != null;
+    }
+  }
+}
+```
+
 ## Usage
 
 Are you using FireShort for your URL shortener? Let me know! Feel free to put a PR with your details added to the table!
