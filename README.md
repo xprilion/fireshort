@@ -10,6 +10,18 @@ Authentication of this project has been taken from https://github.com/chaseoc/fi
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Requirements
+
+You'll need to make the following set up:
+
+1. A Firebase project with Hosting (Free plan will work)
+
+2. Add a Custom domain to your Firebase Hosting (you know, the shorter, the better)
+
+3. Enable Email/Password authentication in your Firebase Authentication settings and set up your users.
+
+4. Enable Firestore in the Firebase project.
+
 ## How to Use
 
 1. Clone the repo:
@@ -70,7 +82,7 @@ firebase --project **your_project_id** deploy
 
 ## Configuration
 
-The following confiurations are available:
+The following configurations are available:
 
 | Parameter | Type | Description |
 |:---------:|:----:|:-----------:|
