@@ -42,6 +42,24 @@ module.exports = global.config = {
 };
 ```
 
+6. Local test run
+
+```
+npm start
+```
+
+7. Production build
+
+```
+npm run-script build
+```
+
+8. Deploy to Firebase
+
+```
+firebase --project **your_project_id** deploy
+```
+
 ## Configuration
 
 The following confiurations are available:
