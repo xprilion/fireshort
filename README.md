@@ -1,4 +1,6 @@
-![FireShort Logo](https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png)
+<p align="center">
+  <img width="300" height="300" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
+</p>
 
 Authentication of this project has been taken from https://github.com/chaseoc/firebase-login-page
 
