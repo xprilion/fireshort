@@ -142,6 +142,32 @@ class Admin extends Component {
     event.preventDefault();
   }
 
+  handleDeleteShortUrl = (curl) => {
+    const self = this;
+    db.collection('shorturls').doc(curl).delete().then(function(){
+      self.updateUrls();
+    });
+  }
+
+  handleEditShortUrl = (curl) => {
+    const self = this;
+    var docref = db.collection('shorturls').doc(curl);
+    docref.get().then(doc => {
+      if (!doc.exists) {
+        console.log('No such document!');
+      } else {
+        var data = doc.data();
+
+        self.setState({lurl: data.lurl});
+        self.setState({curl: data.curl});
+        self.setState({formopen: true});
+      }
+    })
+    .catch(err => {
+      console.log('Error getting document', err);
+    });
+  }
+
   handleClickOpen = () => {
     this.setState({ formopen: true});
   };
@@ -161,6 +187,7 @@ class Admin extends Component {
   updateUrls = () => {
     const self = this;
     self.setState({ loading: true });
+    self.setState({ shortUrls: []});
 
     db.collection('shorturls').get()
     .then((snapshot) => {
@@ -197,7 +224,6 @@ class Admin extends Component {
 
   render() {
     const { classes } = this.props;
-    const shortUrls = this.state.shortUrls;
 
     return (
       <React.Fragment>
@@ -222,7 +248,7 @@ class Admin extends Component {
             (
               <Container className={classes.cardGrid} maxWidth="md">
                 <Grid container spacing={4}>
-                  {shortUrls.map((card) => (
+                  {this.state.shortUrls.map((card) => (
                     <Grid item key={card.id} xs={12} sm={6} md={4}>
                       <Card className={classes.card}>
                         <CardContent className={classes.cardContent}>
@@ -244,12 +270,12 @@ class Admin extends Component {
                           <Button size="small" color="primary" href={card.data.lurl} target="_blank">
                             Open
                           </Button>
-                          {/* <Button size="small" href={card.cert}>
+                          <Button size="small" onClick={() => this.handleEditShortUrl(card.data.curl)}>
                             Edit
                           </Button>
-                          <Button size="small" color="secondary">
+                          <Button size="small" color="secondary" onClick={() => this.handleDeleteShortUrl(card.data.curl)}>
                             Delete
-                          </Button> */}
+                          </Button>
                         </CardActions>
                       </Card>
                     </Grid>
@@ -286,7 +312,7 @@ class Admin extends Component {
                 label="Long URL"
                 type="text"
                 fullWidth
-                value={this.state.certid} 
+                value={this.state.lurl} 
                 onChange={this.handleLurlChange}
               />
               <TextField
@@ -295,7 +321,7 @@ class Admin extends Component {
                 label="Custom URL"
                 type="text"
                 fullWidth
-                value={this.state.certid} 
+                value={this.state.curl} 
                 onChange={this.handleCurlChange}
               />
             </DialogContent>
