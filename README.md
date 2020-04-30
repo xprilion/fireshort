@@ -44,7 +44,7 @@ git clone https://github.com/xprilion/fireshort.git
 cd fireshort
 ```
 
-3. Edit `src/firebase/firebase.json` and put your Firebase Project Config here:
+3. Edit `src/firebase/firebase.js` and put your Firebase Project Config here:
 
 ```
 const firebaseConfig = {
