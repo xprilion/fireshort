@@ -1,0 +1,14 @@
+{
+  "short_name": "FireShort",
+  "name": "Open Source React URL Shortener",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
