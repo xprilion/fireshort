@@ -1,6 +1,10 @@
 <p align="center">
-  <img width="150" height="150" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
+  <img width="100" height="100" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
 </p>
+
+# FireShort
+
+A modern URL shortener built with React, Material UI and Firebase.
 
 Authentication of this project has been taken from https://github.com/chaseoc/firebase-login-page
 
