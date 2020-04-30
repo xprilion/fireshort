@@ -10,6 +10,14 @@ Authentication of this project has been taken from https://github.com/chaseoc/fi
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+### Features
+
+1. Self Hosted using Firebase (Free plan)
+2. Admin Panel for link management
+3. Domain Customizable to anything you wish
+4. Modern, Material UI (we all love this!)
+5. **Actively under development**
+
 ## Requirements
 
 You'll need to make the following set up:
