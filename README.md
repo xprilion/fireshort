@@ -30,6 +30,12 @@ You'll need to make the following set up:
 
 4. Enable Firestore in the Firebase project.
 
+## Setup Guide Video
+
+I went ahead and put all the installation steps into a video! You can watch the FireShort Setup Guide here - 
+
+https://www.youtube.com/watch?v=eVU0Wm3HLdM
+
 ## How to Use
 
 1. Clone the repo:
@@ -95,3 +101,11 @@ The following configurations are available:
 | Parameter | Type | Description |
 |:---------:|:----:|:-----------:|
 | globa.config.mainsite | URL | The site to which a blank suffix redirects. For ex: **short.site** -> **long.site** |
+
+## Usage
+
+Are you using FireShort for your URL shortener? Let me know! Feel free to put a PR with your details added to the table!
+
+| Website | Website short description | Person |
+|:--------|:--------------------------|:-------|
+| [xpri.dev](https://xpri.dev) | URL Shortener for xprilion.com | @xprilion |
