@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="300" height="300" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
+  <img width="150" height="150" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
 </p>
 
 Authentication of this project has been taken from https://github.com/chaseoc/firebase-login-page
