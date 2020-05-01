@@ -302,15 +302,40 @@ class Admin extends Component {
           <Dialog open={this.state.formopen} onClose={this.handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">FireShort URL</DialogTitle>
             <DialogContent>
-              <DialogContentText>
-                Enter Long URL.
-              </DialogContentText>
+              { this.state.lurl.length === 0 && this.state.curl.length === 0 && 
+                (
+                  <DialogContentText>
+                    Enter Long and Short URLs.
+                  </DialogContentText>
+                )
+              }
+              { this.state.lurl.length === 0 && this.state.curl.length > 0 && 
+                (
+                  <DialogContentText>
+                    Enter Long URL.
+                  </DialogContentText>
+                )
+              }
+              { this.state.lurl.length > 0 && this.state.curl.length === 0 && 
+                (
+                  <DialogContentText>
+                    Enter Short URL.
+                  </DialogContentText>
+                )
+              }
+              { this.state.lurl.length > 0 && this.state.curl.length > 0 && 
+                (
+                  <DialogContentText>
+                    Looks good to go!
+                  </DialogContentText>
+                )
+              }
               <TextField
                 autoFocus
                 margin="dense"
                 id="longurl"
                 label="Long URL"
-                type="text"
+                type="url"
                 fullWidth
                 value={this.state.lurl} 
                 onChange={this.handleLurlChange}

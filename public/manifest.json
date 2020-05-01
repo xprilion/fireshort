@@ -1,11 +1,22 @@
 {
   "short_name": "FireShort",
-  "name": "Open Source React URL Shortener",
+  "name": "FireShort - Open Source React URL Shortener",
   "icons": [
     {
       "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
-    }
+    },
+    {
+      "src": "./icons/favicon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./icons/favicon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }	    
   ],
   "start_url": ".",
   "display": "standalone",
