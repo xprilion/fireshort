@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" height="100" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/favicon-196x196.png">
+  <img width="100" height="100" src="https://raw.githubusercontent.com/xprilion/fireshort/master/public/logo.png">
 </p>
 
 # FireShort
