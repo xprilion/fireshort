@@ -88,6 +88,16 @@ module.exports = global.config = {
 ```
 npm start
 ```
+If you get an error like this here:
+
+> Attempting to bind to HOST environment variable: x86_64-conda_cos6-linux-gnu
+
+you need to remove your conda environment and set back the host. Use the following commands:
+
+```
+conda deactivate
+export HOST=localhost
+```
 
 7. Production build
 
