@@ -111,6 +111,10 @@ npm run-script build
 firebase --project **your_project_id** deploy
 ```
 
+9. [Optional] Connect a Custom domain
+
+Follow the [Firebase documentation article to setup a custom domain](https://firebase.google.com/docs/hosting/custom-domain) for your URL shortener. 
+
 ## Configuration
 
 The following configurations are available:
