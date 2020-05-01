@@ -170,6 +170,8 @@ class Admin extends Component {
 
   handleClickOpen = () => {
     this.setState({ formopen: true});
+    this.setState({lurl: ""});
+    this.setState({curl: ""});
   };
 
   handleClose = () => {
@@ -208,9 +210,7 @@ class Admin extends Component {
 		myFirebase.auth().onAuthStateChanged(function(user) {
 			if (user) {
         self.setState({ user });
-
         self.updateUrls();
-        
 			} else {
 				self.setState({ user: null });
       }
@@ -365,7 +365,6 @@ class Admin extends Component {
             </Alert>
           </Snackbar>
         </main>
-
         {/* Footer */}
         <footer className={classes.footer}>
           <Typography variant="h6" align="center" gutterBottom>
@@ -387,8 +386,7 @@ class Admin extends Component {
 
 function mapStateToProps(state) {
   return {
-    isLoggingOut: state.auth.isLoggingOut,
-    logoutError: state.auth.logoutError
+    isLoggingOut: state.auth.isLoggingOut
   };
 }
 
