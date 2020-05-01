@@ -18,6 +18,13 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 4. Modern, Material UI (we all love this!)
 5. **Actively under development**
 
+### Why another URL shortener?
+
+I come from the PHP era. Back then we had [YOURLS](https://yourls.org) which gave us a perfect self-hosted URL shortener on our domains.
+But the YOURLS UI now feels ancient and honestly, with the availability of amazing new tech, its a sin to not use them.
+
+This project has been created with the goal of providing a modern re-do of YOURLS and at the same time, introduce new features wherever possible!
+
 ## Requirements
 
 You'll need to make the following set up:
