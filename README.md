@@ -100,7 +100,7 @@ The following configurations are available:
 
 | Parameter | Type | Description |
 |:---------:|:----:|:-----------:|
-| globa.config.mainsite | URL | The site to which a blank suffix redirects. For ex: **short.site** -> **long.site** |
+| global.config.mainsite | URL | The site to which a blank suffix redirects. For ex: **short.site** -> **long.site** |
 
 ### Suggested Rules for Firebase Database
 
