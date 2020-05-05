@@ -1,35 +1,21 @@
 import React, { Component } from 'react';
-
-import AppBar from '@material-ui/core/AppBar';
-import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import Grid from '@material-ui/core/Grid';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import { withStyles } from "@material-ui/core/styles";
-import Container from '@material-ui/core/Container';
-import Link from '@material-ui/core/Link';
-import Fab from '@material-ui/core/Fab';
-import AddIcon from '@material-ui/icons/Add';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import TextField from '@material-ui/core/TextField';
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
-import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
-import IconButton from '@material-ui/core/IconButton';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import MainToolBar from "./MainToolBar.js";
+import CardUrls from "./CardUrls.js";
+import ListUrls from "./ListUrls.js";
+import UrlsDialog from "./UrlsDialog.js";
+import Footer from "./Footer.js";
 
 import { connect } from "react-redux";
 import { logoutUser } from "../actions";
 import { myFirebase, db } from '../firebase/firebase';
+
+import {  AppBar, Button, Container, CssBaseline,
+          Fab, LinearProgress, Snackbar, Toolbar, Typography 
+        } from '@material-ui/core';
+
+import { withStyles } from "@material-ui/core/styles";
+import AddIcon from '@material-ui/icons/Add';
+import MuiAlert from '@material-ui/lab/Alert';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -45,55 +31,10 @@ const styles = (theme) => ({
   title: {
     flexGrow: 1,
   },
-  icon: {
-    marginRight: theme.spacing(2),
-  },
-  heroContent: {
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(8, 0, 6),
-  },
-  heroButtons: {
-    marginTop: theme.spacing(4),
-  },
   fab: {
     position: 'fixed',
     bottom: theme.spacing(2),
     right: theme.spacing(2),
-  },
-  cardGrid: {
-    paddingTop: theme.spacing(8),
-    paddingBottom: theme.spacing(8),
-  },
-  card: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  cardMedia: {
-    paddingTop: '56.25%', // 16:9
-  },
-  cardContent: {
-    flexGrow: 1,
-  },
-  footer: {
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(6),
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    margin: 'auto',
-    width: 'fit-content',
-  },
-  formControl: {
-    marginTop: theme.spacing(2),
-    minWidth: 120,
-  },
-  formControlLabel: {
-    marginTop: theme.spacing(1),
-  },
-  copyButton: {
-    justifyContent: "flex-end",
   }
 });
 
@@ -108,9 +49,10 @@ class Admin extends Component {
       lurl: "",
       curl: "",
       successToast: false,
+      viewMode: "module",
     }
-    this.handleChange = this.handleLurlChange.bind(this);
-    this.handleChange = this.handleCurlChange.bind(this);
+    this.handleLurlChange = this.handleLurlChange.bind(this);
+    this.handleCurlChange = this.handleCurlChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
   
@@ -202,7 +144,11 @@ class Admin extends Component {
       console.log('Error getting documents', err);
       self.setState({ loading: false });
     });
-    
+  }
+
+  updateViewMode = (mode) => {
+    this.setState({viewMode: mode});
+    db.collection('settings').doc("viewMode").set({value: mode});
   }
 
   componentDidMount() {
@@ -211,6 +157,19 @@ class Admin extends Component {
 			if (user) {
         self.setState({ user });
         self.updateUrls();
+        var viewModeRef = db.collection('settings').doc("viewMode");
+        viewModeRef.get()
+          .then(doc => {
+            if (!doc.exists) {
+              console.log('No viewMode set!');
+            } else {
+              var data = doc.data();
+              self.setState({viewMode: data.value})
+            }
+          })
+          .catch(err => {
+            console.log('Error getting viewMode', err);
+          });
 			} else {
 				self.setState({ user: null });
       }
@@ -229,7 +188,7 @@ class Admin extends Component {
       <React.Fragment>
         <CssBaseline />
         <div className={classes.root}>
-          <AppBar position="static">
+          <AppBar position="fixed">
             <Toolbar>
               <Typography variant="h6" className={classes.title}>
                 FireShort
@@ -244,44 +203,24 @@ class Admin extends Component {
           )
         }
         <main>
+          <MainToolBar state={this.state} updateViewMode={this.updateViewMode} />
           {this.state.shortUrls.length > 0 ?
             (
-              <Container className={classes.cardGrid} maxWidth="md">
-                <Grid container spacing={4}>
-                  {this.state.shortUrls.map((card) => (
-                    <Grid item key={card.id} xs={12} sm={6} md={4}>
-                      <Card className={classes.card}>
-                        <CardContent className={classes.cardContent}>
-                          <Grid container spacing={2} direction="row-reverse">
-                            <Grid item>
-                              <IconButton color="primary" className={classes.copyButton} onClick={() => {navigator.clipboard.writeText(window.location.hostname + "/" + card.data.curl)}}>
-                              <FileCopyOutlinedIcon />
-                            </IconButton>
-                            </Grid>
-                          </Grid>
-                          <Box bgcolor="primary.main" color="background.paper" p={2}>
-                            {card.data.curl}
-                          </Box>
-                          <Box bgcolor="text.primary" color="background.paper" p={2} style={{overflowX: 'auto', overflowY: 'hidden', whiteSpace: "nowrap"}}>
-                            {card.data.lurl}
-                          </Box>
-                        </CardContent>
-                        <CardActions>
-                          <Button size="small" color="primary" href={card.data.lurl} target="_blank">
-                            Open
-                          </Button>
-                          <Button size="small" onClick={() => this.handleEditShortUrl(card.data.curl)}>
-                            Edit
-                          </Button>
-                          <Button size="small" color="secondary" onClick={() => this.handleDeleteShortUrl(card.data.curl)}>
-                            Delete
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Container>
+              <>
+                { this.state.viewMode === "module" ? (
+                  <CardUrls 
+                    shortUrls = {this.state.shortUrls}
+                    handleEditShortUrl = {this.handleEditShortUrl}
+                    handleDeleteShortUrl = {this.handleDeleteShortUrl}
+                  />
+                ): (
+                  <ListUrls 
+                    shortUrls = {this.state.shortUrls}
+                    handleEditShortUrl = {this.handleEditShortUrl}
+                    handleDeleteShortUrl = {this.handleDeleteShortUrl}
+                  />
+                )}
+              </>
             )
             :
             (
@@ -299,86 +238,21 @@ class Admin extends Component {
             <AddIcon />
           </Fab>
 
-          <Dialog open={this.state.formopen} onClose={this.handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">FireShort URL</DialogTitle>
-            <DialogContent>
-              { this.state.lurl.length === 0 && this.state.curl.length === 0 && 
-                (
-                  <DialogContentText>
-                    Enter Long and Short URLs.
-                  </DialogContentText>
-                )
-              }
-              { this.state.lurl.length === 0 && this.state.curl.length > 0 && 
-                (
-                  <DialogContentText>
-                    Enter Long URL.
-                  </DialogContentText>
-                )
-              }
-              { this.state.lurl.length > 0 && this.state.curl.length === 0 && 
-                (
-                  <DialogContentText>
-                    Enter Short URL.
-                  </DialogContentText>
-                )
-              }
-              { this.state.lurl.length > 0 && this.state.curl.length > 0 && 
-                (
-                  <DialogContentText>
-                    Looks good to go!
-                  </DialogContentText>
-                )
-              }
-              <TextField
-                autoFocus
-                margin="dense"
-                id="longurl"
-                label="Long URL"
-                type="url"
-                fullWidth
-                value={this.state.lurl} 
-                onChange={this.handleLurlChange}
-              />
-              <TextField
-                margin="dense"
-                id="customurl"
-                label="Custom URL"
-                type="text"
-                fullWidth
-                value={this.state.curl} 
-                onChange={this.handleCurlChange}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={this.handleClose} color="primary">
-                Cancel
-              </Button>
-              <Button onClick={this.handleSubmit} color="primary">
-                Shorten
-              </Button>
-            </DialogActions>
-          </Dialog>
+          <UrlsDialog 
+            state={this.state} 
+            handleClose = {this.handleClose}
+            handleLurlChange = {this.handleLurlChange}
+            handleCurlChange = {this.handleCurlChange}
+            handleSubmit = {this.handleSubmit}
+          />
+          
           <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>
             <Alert onClose={this.handleToastClose} severity="success">
               Successfully added!
             </Alert>
           </Snackbar>
         </main>
-        {/* Footer */}
-        <footer className={classes.footer}>
-          <Typography variant="h6" align="center" gutterBottom>
-            With <span role="img" aria-label="heart">❤️</span> from <Link color="inherit" href="https://xprilion.com">
-              xprilion
-            </Link>
-          </Typography>
-          <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
-            <Link color="inherit" href="https://github.com/xprilion/fireshort">
-              Fork on GitHub
-            </Link>
-          </Typography>
-        </footer>
-        {/* End footer */}
+        <Footer />
       </React.Fragment>
     );
   }
