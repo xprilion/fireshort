@@ -104,9 +104,7 @@ class Admin extends Component {
     await resolveURL(lurl)
       .then((res) => {
         dnsValid = res;
-        db.collection("shorturls")
-          .doc(curl)
-          .set(data)
+        db.collection("shorturls").doc(curl).set(data)
           .then(function () {
             self.setState({ successToast: true });
           });
