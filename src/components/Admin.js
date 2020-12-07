@@ -98,9 +98,9 @@ class Admin extends Component {
         });
       });
     }
+    
     console.log("start");
     let dnsValid;
-
     await resolveURL(lurl)
       .then((res) => {
         dnsValid = res;
