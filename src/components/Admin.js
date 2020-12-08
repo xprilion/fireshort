@@ -86,7 +86,9 @@ class Admin extends Component {
     };
 
     let recordLength;
-    await this.handleDNSProbe(lurl).then(res => {recordLength = res});
+    await this.handleDNSProbe(lurl)
+      .then(res => {recordLength = res})
+      .catch(res=>this.setState({ invalidLurl: true }));
 
     if (recordLength > 0) {
       self.setState({ invalidLurl: false });
@@ -122,7 +124,7 @@ class Admin extends Component {
           outputFormat: "JSON",
         },
         headers: {
-          "x-rapidapi-key": "e0678694b7msh7bb2054deff2da2p1820b1jsn85cd7be067c8",
+          "x-rapidapi-key": process.env.REACT_APP_DNS_LOOKUP,
           "x-rapidapi-host": "whoisapi-dns-lookup-v1.p.rapidapi.com",
         },
       };
@@ -130,8 +132,8 @@ class Admin extends Component {
       let recordLength;
       try {
         const response = await axios.request(options); 
+        console.log(response);
         recordLength = response.data.DNSData.dnsRecords.length;
-        // console.log(response);
         console.log("recordLength :", recordLength);
         resolve(recordLength);
         console.log("end");

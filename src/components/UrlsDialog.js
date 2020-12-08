@@ -27,9 +27,7 @@ export default function UrlsDialog(props) {
             type="url"
             fullWidth
             value={props.state.lurl}
-            onChange={e => {
-              props.handleLurlChange(e);
-            }}
+            onChange={props.handleLurlChange}
           />
           <TextField
             margin="dense"
