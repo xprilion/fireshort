@@ -25,13 +25,13 @@ import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import MuiAlert from "@material-ui/lab/Alert";
 
-const dns = require("dns");
+import axios from "axios";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const styles = (theme) => ({
+const styles = theme => ({
   root: {
     flexGrow: 1,
   },
@@ -58,6 +58,7 @@ class Admin extends Component {
       formopen: false,
       lurl: "",
       curl: "",
+      invalidLurl: false,
       successToast: false,
       viewMode: "module",
     };
@@ -66,15 +67,15 @@ class Admin extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleLurlChange = async (event) => {
+  handleLurlChange = event => {
     this.setState({ lurl: event.target.value });
   };
 
-  handleCurlChange = (event) => {
+  handleCurlChange = event => {
     this.setState({ curl: event.target.value });
   };
 
-  handleSubmit = async (event) => {
+  handleSubmit = async event => {
     var lurl = this.state.lurl;
     var curl = this.state.curl;
     const self = this;
@@ -83,45 +84,66 @@ class Admin extends Component {
       lurl: lurl,
       curl: curl,
     };
-    function resolveURL(url) {
-      return new Promise((resolve, reject) => {
-        let anchor = document.createElement("a");
-        anchor.href = url;
-        let hostname = anchor.hostname;
-        console.log(hostname);
-        dns.resolve(hostname, (err, value) => {
-          if (err) {
-            reject(false); console.error(err)
-            return;
-          }
-          resolve(true); console.log(value)
-        });
-      });
-    }
-    
-    console.log("start");
-    let dnsValid;
-    await resolveURL(lurl)
-      .then((res) => {
-        dnsValid = res;
-        db.collection("shorturls").doc(curl).set(data)
-          .then(function () {
-            self.setState({ successToast: true });
-          });
-      })
-      .catch((res) => {
-        dnsValid = res;
-      });
-    console.log(dnsValid);
-    console.log("end");
 
-    self.handleClose();
-    self.updateUrls();
+    let recordLength;
+    await this.handleDNSProbe(lurl).then(res => {recordLength = res});
+
+    if (recordLength > 0) {
+      self.setState({ invalidLurl: false });
+      db.collection("shorturls")
+        .doc(curl)
+        .set(data)
+        .then(function () {
+          self.setState({ successToast: true });
+        });
+      self.handleClose();
+      self.updateUrls();
+    }else{
+      self.setState({ invalidLurl: true });
+    }
 
     event.preventDefault();
   };
 
-  handleDeleteShortUrl = (curl) => {
+  handleDNSProbe = (url) => {
+    return new Promise(async (resolve, reject) => {
+      let anchor = document.createElement("a");
+      anchor.href = url;
+      let hostname = anchor.hostname;
+      console.log(hostname);
+      const options = {
+        method: "GET",
+        url: "https://whoisapi-dns-lookup-v1.p.rapidapi.com/whoisserver/DNSService",
+        params: {
+          username: "username",
+          password: "password",
+          domainname: hostname,
+          type: "A",
+          outputFormat: "JSON",
+        },
+        headers: {
+          "x-rapidapi-key": "e0678694b7msh7bb2054deff2da2p1820b1jsn85cd7be067c8",
+          "x-rapidapi-host": "whoisapi-dns-lookup-v1.p.rapidapi.com",
+        },
+      };
+      console.log("start");
+      let recordLength;
+      try {
+        const response = await axios.request(options); 
+        recordLength = response.data.DNSData.dnsRecords.length;
+        // console.log(response);
+        console.log("recordLength :", recordLength);
+        resolve(recordLength);
+        console.log("end");
+      } catch (error) {
+        console.error(error);
+        reject(0);
+        console.log("end");
+      }
+    });
+  };
+  
+  handleDeleteShortUrl = curl => {
     const self = this;
     db.collection("shorturls")
       .doc(curl)
@@ -131,12 +153,12 @@ class Admin extends Component {
       });
   };
 
-  handleEditShortUrl = (curl) => {
+  handleEditShortUrl = curl => {
     const self = this;
     var docref = db.collection("shorturls").doc(curl);
     docref
       .get()
-      .then((doc) => {
+      .then(doc => {
         if (!doc.exists) {
           console.log("No such document!");
         } else {
@@ -147,7 +169,7 @@ class Admin extends Component {
           self.setState({ formopen: true });
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.log("Error getting document", err);
       });
   };
@@ -177,24 +199,21 @@ class Admin extends Component {
 
     db.collection("shorturls")
       .get()
-      .then((snapshot) => {
-        snapshot.forEach((doc) => {
+      .then(snapshot => {
+        snapshot.forEach(doc => {
           self.setState({
-            shortUrls: [
-              ...self.state.shortUrls,
-              { id: doc.id, data: doc.data() },
-            ],
+            shortUrls: [...self.state.shortUrls, { id: doc.id, data: doc.data() }],
           });
         });
         self.setState({ loading: false });
       })
-      .catch((err) => {
+      .catch(err => {
         console.log("Error getting documents", err);
         self.setState({ loading: false });
       });
   };
 
-  updateViewMode = (mode) => {
+  updateViewMode = mode => {
     this.setState({ viewMode: mode });
     db.collection("settings").doc("viewMode").set({ value: mode });
   };
@@ -208,7 +227,7 @@ class Admin extends Component {
         var viewModeRef = db.collection("settings").doc("viewMode");
         viewModeRef
           .get()
-          .then((doc) => {
+          .then(doc => {
             if (!doc.exists) {
               console.log("No viewMode set!");
             } else {
@@ -216,7 +235,7 @@ class Admin extends Component {
               self.setState({ viewMode: data.value });
             }
           })
-          .catch((err) => {
+          .catch(err => {
             console.log("Error getting viewMode", err);
           });
       } else {
@@ -250,10 +269,7 @@ class Admin extends Component {
         </div>
         {this.state.loading && <LinearProgress color="secondary" />}
         <main>
-          <MainToolBar
-            state={this.state}
-            updateViewMode={this.updateViewMode}
-          />
+          <MainToolBar state={this.state} updateViewMode={this.updateViewMode} />
           {this.state.shortUrls.length > 0 ? (
             <>
               {this.state.viewMode === "module" ? (
@@ -273,25 +289,14 @@ class Admin extends Component {
           ) : (
             <div className={classes.heroContent}>
               <Container maxWidth="sm">
-                <Typography
-                  component="h1"
-                  variant="h2"
-                  align="center"
-                  color="textPrimary"
-                  gutterBottom
-                >
+                <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
                   Oops! Nothing here.
                 </Typography>
               </Container>
             </div>
           )}
 
-          <Fab
-            aria-label="Add"
-            className={classes.fab}
-            color="primary"
-            onClick={this.handleClickOpen}
-          >
+          <Fab aria-label="Add" className={classes.fab} color="primary" onClick={this.handleClickOpen}>
             <AddIcon />
           </Fab>
 
@@ -303,11 +308,7 @@ class Admin extends Component {
             handleSubmit={this.handleSubmit}
           />
 
-          <Snackbar
-            open={this.state.successToast}
-            autoHideDuration={6000}
-            onClose={this.handleToastClose}
-          >
+          <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>
             <Alert onClose={this.handleToastClose} severity="success">
               Successfully added!
             </Alert>
