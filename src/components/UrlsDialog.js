@@ -17,7 +17,7 @@ export default function UrlsDialog(props) {
             <DialogContentText>Enter Short URL.</DialogContentText>
           )}
           {props.state.lurl.length > 0 && props.state.curl.length > 0 && props.state.invalidLurl && (
-            <DialogContentText>Invalid Long URL! Please try again.</DialogContentText>
+            <DialogContentText style={{color:'red'}}>Invalid Long URL! Please try again.</DialogContentText>
           )}
           <TextField
             autoFocus
