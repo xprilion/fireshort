@@ -1,4 +1,4 @@
 module.exports = global.config = {
-    mainsite: "https://xprilion.com"
+    mainsite: "https://short.com"
     // other global config variables you wish
 };

@@ -66,7 +66,15 @@ class Admin extends Component {
 
   handleSubmit = (event) => {
     var lurl = this.state.lurl;
-    var curl = this.state.curl;
+    var curl = "";
+    if(this.state.curl.length>0)
+    {
+      curl=this.state.curl;
+    }
+    else
+    {
+      curl = document.getElementById("customurl").value;
+    }
     const self = this;
 
     let data = {
