@@ -26,4 +26,3 @@ yarn-error.log*
 /.firebase
 .vscode/
 TODO.md
-.env
