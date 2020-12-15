@@ -212,6 +212,7 @@ class Admin extends Component {
   };
   closeAll = async () => {
     await this.setStatePromise();
+    this.handleSubmit();
   };
 
   handleToastClose = (event, reason) => {
