@@ -3,6 +3,7 @@ import MainToolBar from "./MainToolBar.js";
 import CardUrls from "./CardUrls.js";
 import ListUrls from "./ListUrls.js";
 import UrlsDialog from "./UrlsDialog.js";
+import WarnDialog from "./WarnDialog.js";
 import Footer from "./Footer.js";
 
 import { connect } from "react-redux";
@@ -61,6 +62,10 @@ class Admin extends Component {
       invalidLurl: false,
       successToast: false,
       viewMode: "module",
+
+      warnOpen: false,
+      replace: false,
+      editmode: false,
     };
     this.handleLurlChange = this.handleLurlChange.bind(this);
     this.handleCurlChange = this.handleCurlChange.bind(this);
@@ -80,34 +85,46 @@ class Admin extends Component {
     var curl = this.state.curl;
     const self = this;
 
-    let data = {
-      lurl: lurl,
-      curl: curl,
-    };
-
-    let recordLength;
-    await this.handleDNSProbe(lurl)
-      .then(res => {recordLength = res})
-      .catch(res=>this.setState({ invalidLurl: true }));
-
-    if (recordLength > 0) {
-      self.setState({ invalidLurl: false });
-      db.collection("shorturls")
-        .doc(curl)
-        .set(data)
-        .then(function () {
-          self.setState({ successToast: true });
-        });
-      self.handleClose();
-      self.updateUrls();
-    }else{
-      self.setState({ invalidLurl: true });
+    //check if the short URL exists in out shortUrls array
+    let found = undefined;
+    if (!this.state.editmode) {
+      found = this.state.shortUrls.find(obj => obj.id === curl);
+      !this.state.replace && this.setState({ warnOpen: true });
     }
 
-    event.preventDefault();
+    if (found === undefined || this.state.replace === true) {
+      let data = {
+        lurl: lurl,
+        curl: curl,
+      };
+      let recordLength;
+      await this.handleDNSProbe(lurl)
+        .then(res => {
+          recordLength = res;
+        })
+        .catch(res => this.setState({ invalidLurl: true }));
+
+      if (recordLength > 0) {
+        self.setState({ invalidLurl: false });
+        db.collection("shorturls")
+          .doc(curl)
+          .set(data)
+          .then(function () {
+            self.setState({ successToast: true });
+          });
+        self.handleClose();
+        self.updateUrls();
+      } else {
+        self.setState({ invalidLurl: true });
+      }
+    }
+    this.setState({ editmode: false, replace: false });
+    if (event !== undefined) {
+      event.preventDefault();
+    }
   };
 
-  handleDNSProbe = (url) => {
+  handleDNSProbe = url => {
     return new Promise(async (resolve, reject) => {
       let anchor = document.createElement("a");
       anchor.href = url;
@@ -131,7 +148,7 @@ class Admin extends Component {
       console.log("start");
       let recordLength;
       try {
-        const response = await axios.request(options); 
+        const response = await axios.request(options);
         console.log(response);
         recordLength = response.data.DNSData.dnsRecords.length;
         console.log("recordLength :", recordLength);
@@ -144,7 +161,7 @@ class Admin extends Component {
       }
     });
   };
-  
+
   handleDeleteShortUrl = curl => {
     const self = this;
     db.collection("shorturls")
@@ -157,6 +174,7 @@ class Admin extends Component {
 
   handleEditShortUrl = curl => {
     const self = this;
+    self.setState({ editmode: true });
     var docref = db.collection("shorturls").doc(curl);
     docref
       .get()
@@ -184,6 +202,16 @@ class Admin extends Component {
 
   handleClose = () => {
     this.setState({ formopen: false });
+  };
+
+  setStatePromise = () => {
+    return new Promise((resolve, reject) => {
+      this.setState({ replace: true, warnOpen: false });
+      resolve();
+    });
+  };
+  closeAll = async () => {
+    await this.setStatePromise();
   };
 
   handleToastClose = (event, reason) => {
@@ -308,6 +336,13 @@ class Admin extends Component {
             handleLurlChange={this.handleLurlChange}
             handleCurlChange={this.handleCurlChange}
             handleSubmit={this.handleSubmit}
+          />
+
+          <WarnDialog
+            state={this.state}
+            warnClose={() => this.setState({ warnOpen: false })}
+            handleSubmit={this.handleSubmit}
+            closeAll={this.closeAll}
           />
 
           <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>
