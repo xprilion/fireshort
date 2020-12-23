@@ -64,14 +64,14 @@ class Admin extends Component {
       viewMode: "module",
 
       warnOpen: false,
-      replace: false,
-      editmode: false,
     };
     this.handleLurlChange = this.handleLurlChange.bind(this);
     this.handleCurlChange = this.handleCurlChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
+  lastCurl = null;
+  replacePermitted = false;
+  editmode = false;
   handleLurlChange = event => {
     this.setState({ lurl: event.target.value });
   };
@@ -80,45 +80,75 @@ class Admin extends Component {
     this.setState({ curl: event.target.value });
   };
 
-  handleSubmit = async event => {
-    var lurl = this.state.lurl;
-    var curl = this.state.curl;
-    const self = this;
-
-    //check if the short URL exists in out shortUrls array
-    let found = undefined;
-    if (!this.state.editmode) {
-      found = this.state.shortUrls.find(obj => obj.id === curl);
-      !this.state.replace && this.setState({ warnOpen: true });
+  isShortUrlPresent = () => {
+    let found = this.state.shortUrls.find(obj => obj.id === this.state.curl);
+    if (found === undefined) {
+      return false;
+    } else {
+      return true;
     }
+  };
+  openWarn = () => {
+    return new Promise((resolve, reject) => {
+      this.setState({ warnOpen: true });
+      resolve();
+    });
+  };
+  handleLurlValidate = async () => {
+    let lurl = this.state.lurl;
+    let curl = this.state.curl;
+    let data = {
+      lurl: lurl,
+      curl: curl,
+    };
+    let recordLength;
+    await this.handleDNSProbe(lurl)
+      .then(res => {
+        recordLength = res;
+      })
+      .catch(res => this.setState({ invalidLurl: true }));
 
-    if (found === undefined || this.state.replace === true) {
-      let data = {
-        lurl: lurl,
-        curl: curl,
-      };
-      let recordLength;
-      await this.handleDNSProbe(lurl)
-        .then(res => {
-          recordLength = res;
+    if (recordLength > 0) {
+      this.setState({ invalidLurl: false });
+      db.collection("shorturls")
+        .doc(curl)
+        .set(data)
+        .then(() => {
+          this.setState({ successToast: true });
         })
-        .catch(res => this.setState({ invalidLurl: true }));
+        .catch(()=>console.log('Unable to connect to firestore'));
+      this.handleClose();
+      this.updateUrls();
 
-      if (recordLength > 0) {
-        self.setState({ invalidLurl: false });
-        db.collection("shorturls")
-          .doc(curl)
-          .set(data)
-          .then(function () {
-            self.setState({ successToast: true });
-          });
-        self.handleClose();
-        self.updateUrls();
-      } else {
-        self.setState({ invalidLurl: true });
-      }
+      this.lastCurl = this.state.curl; //set
+      this.replacePermitted = false; //reset
+      this.editmode = false; //reset
+      return true;
+    } else {
+      this.setState({ invalidLurl: true });
+      return false;
     }
-    this.setState({ editmode: false, replace: false });
+  };
+  handleSubmit = async event => {
+    let isShortUrlFound; // checks if the short URL exists in our shortUrls array
+
+    if (this.state.editmode && this.lastCurl === this.state.curl) {
+      this.replacePermitted = true;
+    } else if (this.state.editmode && this.lastCurl !== this.state.curl) {
+      isShortUrlFound = this.isShortUrlPresent();
+      isShortUrlFound && (await this.openWarn());
+    } else if (!this.state.editmode) {
+      isShortUrlFound = this.isShortUrlPresent();
+      isShortUrlFound && (await this.openWarn());
+      // if WarnDialog is not already open then open it
+    }
+
+    // handle Lurl check
+    // executes only iff no extra shortUrl is present OR user permits REPLACE
+    if (!isShortUrlFound || this.state.replacePermitted === true) {
+      this.handleLurlValidate();
+    }
+
     if (event !== undefined) {
       event.preventDefault();
     }
@@ -175,6 +205,7 @@ class Admin extends Component {
   handleEditShortUrl = curl => {
     const self = this;
     self.setState({ editmode: true });
+    this.lastCurl = curl;
     var docref = db.collection("shorturls").doc(curl);
     docref
       .get()
@@ -206,13 +237,14 @@ class Admin extends Component {
 
   setStatePromise = () => {
     return new Promise((resolve, reject) => {
-      this.setState({ replace: true, warnOpen: false });
+      this.replacePermitted = true;
+      this.setState({ warnOpen: false }); //replace is permitted so close WarnDialog
       resolve();
     });
   };
-  closeAll = async () => {
+  handleReplace = async () => {
     await this.setStatePromise();
-    this.handleSubmit();
+    this.handleLurlValidate();
   };
 
   handleToastClose = (event, reason) => {
@@ -341,9 +373,8 @@ class Admin extends Component {
 
           <WarnDialog
             state={this.state}
-            warnClose={() => this.setState({ warnOpen: false })}
-            handleSubmit={this.handleSubmit}
-            closeAll={this.closeAll}
+            warnClose={() => this.setState({ warnOpen: false })} // CANCEL
+            handleReplace={this.handleReplace} // REPLACE
           />
 
           <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>
