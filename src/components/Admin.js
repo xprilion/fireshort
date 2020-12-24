@@ -60,6 +60,10 @@ class Admin extends Component {
     this.setState({lurl: event.target.value});
   }
 
+  handleClear = () => {
+    this.setState({curl:""});
+  };
+
   handleCurlChange = (event) => {
     this.setState({curl: event.target.value});
   }
@@ -252,6 +256,7 @@ class Admin extends Component {
             handleLurlChange = {this.handleLurlChange}
             handleCurlChange = {this.handleCurlChange}
             handleSubmit = {this.handleSubmit}
+            handleClear = {this.handleClear}
           />
           
           <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>

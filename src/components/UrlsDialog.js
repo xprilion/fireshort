@@ -26,6 +26,7 @@ export default function UrlsDialog(props) {
     } 
     function forgetid() {
         setGurl("");
+        props.handleClear();
     }
     return (
         <Dialog open={props.state.formopen} onClose={props.handleClose} aria-labelledby="form-dialog-title">
