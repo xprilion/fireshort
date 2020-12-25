@@ -53,10 +53,17 @@ export default function UrlsDialog(props) {
                         </DialogContentText>
                     )
                 }
-                 {props.state.lurl.length > 0 &&(props.state.curl.length > 0 ||  gurl.length>0) &&
+                 {props.state.lurl.length > 0 && (props.state.curl.length > 0 ||  gurl.length>0) &&
                     (
                         <DialogContentText>
                             Looks good to go!
+                        </DialogContentText>
+                    )
+                }
+                {props.state.lurl.length > 0 &&(props.state.curl.length > 0 ||  gurl.length>0) &&  props.state.invalidLurl &&
+                    (
+                        <DialogContentText style={{color:'red'}}>
+                            Invalid Long URL! Please try again.
                         </DialogContentText>
                     )
                 }
