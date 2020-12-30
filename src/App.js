@@ -1,26 +1,29 @@
-import React from "react";
+import React, {lazy, Suspense} from "react";
 
 import { Route, Switch } from "react-router-dom";
 import { connect } from "react-redux";
 
-import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./components/Login";
-import Home from "./components/Home";
-import Admin from "./components/Admin";
+const ProtectedRoute = lazy(()=> import("./components/ProtectedRoute"));
+const Login = lazy(()=> import("./components/Login"));
+const Home = lazy(()=> import("./components/Home"));
+const Admin = lazy(()=> import("./components/Admin"));
+
 
 function App(props) {
   const { isAuthenticated, isVerifying } = props;
   return (
     <Switch>
-      <ProtectedRoute
-        exact
-        path="/admin"
-        component={Admin}
-        isAuthenticated={isAuthenticated}
-        isVerifying={isVerifying}
-      />
-      <Route path="/login" component={Login} />
-      <Route path="/" component={Home} />
+      <Suspense fallback={<div>Loading Page...</div>}>
+        <ProtectedRoute
+          exact
+          path="/admin"
+          component={Admin}
+          isAuthenticated={isAuthenticated}
+          isVerifying={isVerifying}
+        />
+        <Route path="/login" component={Login} />
+        <Route path="/" component={Home} />
+      </Suspense>
     </Switch>
   );
 }
