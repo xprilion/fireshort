@@ -3,6 +3,7 @@ import MainToolBar from "./MainToolBar.js";
 import CardUrls from "./CardUrls.js";
 import ListUrls from "./ListUrls.js";
 import UrlsDialog from "./UrlsDialog.js";
+import WarnDialog from "./WarnDialog.js";
 import Footer from "./Footer.js";
 
 import { connect } from "react-redux";
@@ -61,12 +62,16 @@ class Admin extends Component {
       invalidLurl: false,
       successToast: false,
       viewMode: "module",
+
+      warnOpen: false,
     };
     this.handleLurlChange = this.handleLurlChange.bind(this);
     this.handleCurlChange = this.handleCurlChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
+  lastCurl = null;
+  replacePermitted = false;
+  editmode = false;
   handleLurlChange = event => {
     this.setState({ lurl: event.target.value });
   };
@@ -75,39 +80,81 @@ class Admin extends Component {
     this.setState({ curl: event.target.value });
   };
 
-  handleSubmit = async event => {
-    var lurl = this.state.lurl;
-    var curl = this.state.curl;
-    const self = this;
-
+  isShortUrlPresent = () => {
+    let found = this.state.shortUrls.find(obj => obj.id === this.state.curl);
+    if (found === undefined) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+  openWarn = () => {
+    return new Promise((resolve, reject) => {
+      this.setState({ warnOpen: true });
+      resolve();
+    });
+  };
+  handleLurlValidate = async () => {
+    let lurl = this.state.lurl;
+    let curl = this.state.curl;
     let data = {
       lurl: lurl,
       curl: curl,
     };
-
     let recordLength;
     await this.handleDNSProbe(lurl)
-      .then(res => {recordLength = res})
-      .catch(res=>this.setState({ invalidLurl: true }));
+      .then(res => {
+        recordLength = res;
+      })
+      .catch(res => this.setState({ invalidLurl: true }));
 
     if (recordLength > 0) {
-      self.setState({ invalidLurl: false });
+      this.setState({ invalidLurl: false });
       db.collection("shorturls")
         .doc(curl)
         .set(data)
-        .then(function () {
-          self.setState({ successToast: true });
-        });
-      self.handleClose();
-      self.updateUrls();
-    }else{
-      self.setState({ invalidLurl: true });
+        .then(() => {
+          this.setState({ successToast: true });
+        })
+        .catch(()=>console.log('Unable to connect to firestore'));
+      this.handleClose();
+      this.updateUrls();
+
+      this.lastCurl = this.state.curl; //set
+      this.replacePermitted = false; //reset
+      this.editmode = false; //reset
+      return true;
+    } else {
+      this.setState({ invalidLurl: true });
+      return false;
+    }
+  };
+  handleSubmit = async event => {
+    let isShortUrlFound; // checks if the short URL exists in our shortUrls array
+
+    if (this.state.editmode && this.lastCurl === this.state.curl) {
+      this.replacePermitted = true;
+    } else if (this.state.editmode && this.lastCurl !== this.state.curl) {
+      isShortUrlFound = this.isShortUrlPresent();
+      isShortUrlFound && (await this.openWarn());
+    } else if (!this.state.editmode) {
+      isShortUrlFound = this.isShortUrlPresent();
+      isShortUrlFound && (await this.openWarn());
+      // if WarnDialog is not already open then open it
     }
 
-    event.preventDefault();
+    // handle Lurl check
+    // executes only iff no extra shortUrl is present OR user permits REPLACE
+    if (!isShortUrlFound || this.state.replacePermitted === true) {
+      this.handleLurlValidate();
+    }
+
+    if (event !== undefined) {
+      event.preventDefault();
+    }
   };
 
-  handleDNSProbe = (url) => {
+  handleDNSProbe = url => {
     return new Promise(async (resolve, reject) => {
       let anchor = document.createElement("a");
       anchor.href = url;
@@ -131,7 +178,7 @@ class Admin extends Component {
       console.log("start");
       let recordLength;
       try {
-        const response = await axios.request(options); 
+        const response = await axios.request(options);
         console.log(response);
         recordLength = response.data.DNSData.dnsRecords.length;
         console.log("recordLength :", recordLength);
@@ -144,7 +191,7 @@ class Admin extends Component {
       }
     });
   };
-  
+
   handleDeleteShortUrl = curl => {
     const self = this;
     db.collection("shorturls")
@@ -157,6 +204,8 @@ class Admin extends Component {
 
   handleEditShortUrl = curl => {
     const self = this;
+    self.setState({ editmode: true });
+    this.lastCurl = curl;
     var docref = db.collection("shorturls").doc(curl);
     docref
       .get()
@@ -184,6 +233,18 @@ class Admin extends Component {
 
   handleClose = () => {
     this.setState({ formopen: false });
+  };
+
+  setStatePromise = () => {
+    return new Promise((resolve, reject) => {
+      this.replacePermitted = true;
+      this.setState({ warnOpen: false }); //replace is permitted so close WarnDialog
+      resolve();
+    });
+  };
+  handleReplace = async () => {
+    await this.setStatePromise();
+    this.handleLurlValidate();
   };
 
   handleToastClose = (event, reason) => {
@@ -308,6 +369,12 @@ class Admin extends Component {
             handleLurlChange={this.handleLurlChange}
             handleCurlChange={this.handleCurlChange}
             handleSubmit={this.handleSubmit}
+          />
+
+          <WarnDialog
+            state={this.state}
+            warnClose={() => this.setState({ warnOpen: false })} // CANCEL
+            handleReplace={this.handleReplace} // REPLACE
           />
 
           <Snackbar open={this.state.successToast} autoHideDuration={6000} onClose={this.handleToastClose}>
