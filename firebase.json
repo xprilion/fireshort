@@ -7,11 +7,10 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
+    "rewrites": [ {	    "rewrites": [
       {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+        "source": "**",	        "source": "**",
+        "destination": "/index.html"	        "destination": "/index.html"
+    } ]
   }
 }
