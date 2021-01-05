@@ -69,12 +69,28 @@ class Admin extends Component {
     this.handleCurlChange = this.handleCurlChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+  handleClear = () => {
+    this.setState({curl:""});
+  };
   lastCurl = null;
   replacePermitted = false;
   editmode = false;
+
   handleLurlChange = event => {
     this.setState({ lurl: event.target.value });
   };
+  handleSubmit = async event => {
+    var lurl = this.state.lurl;
+    var curl = "";
+    if(this.state.curl.length>0)
+    {
+      curl=this.state.curl;
+    }
+    else
+    {
+      curl = document.getElementById("customurl").value;
+    }
+    const self = this;
 
   handleCurlChange = event => {
     this.setState({ curl: event.target.value });
@@ -97,6 +113,7 @@ class Admin extends Component {
   handleLurlValidate = async () => {
     let lurl = this.state.lurl;
     let curl = this.state.curl;
+>
     let data = {
       lurl: lurl,
       curl: curl,
@@ -363,12 +380,13 @@ class Admin extends Component {
             <AddIcon />
           </Fab>
 
-          <UrlsDialog
-            state={this.state}
-            handleClose={this.handleClose}
-            handleLurlChange={this.handleLurlChange}
-            handleCurlChange={this.handleCurlChange}
-            handleSubmit={this.handleSubmit}
+         <UrlsDialog 
+            state={this.state} 
+            handleClose = {this.handleClose}
+            handleLurlChange = {this.handleLurlChange}
+            handleCurlChange = {this.handleCurlChange}
+            handleSubmit = {this.handleSubmit}
+            handleClear = {this.handleClear}         
           />
 
           <WarnDialog
