@@ -91,6 +91,7 @@ class Admin extends Component {
       curl = document.getElementById("customurl").value;
     }
     const self = this;
+  };
 
   handleCurlChange = event => {
     this.setState({ curl: event.target.value });
@@ -113,7 +114,6 @@ class Admin extends Component {
   handleLurlValidate = async () => {
     let lurl = this.state.lurl;
     let curl = this.state.curl;
->
     let data = {
       lurl: lurl,
       curl: curl,
@@ -405,7 +405,7 @@ class Admin extends Component {
       </React.Fragment>
     );
   }
-}
+};
 
 function mapStateToProps(state) {
   return {
